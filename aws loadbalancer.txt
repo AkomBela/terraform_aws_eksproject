@@ -1,0 +1,34 @@
+aws_load_balancer.tf
+resource "kubernetes_ingress" "app" {
+  metadata {
+    name      = "owncloud-lb"
+    namespace = "fargate-node"
+    annotations = {
+      "kubernetes.io/ingress.class"           = "alb"
+      "alb.ingress.kubernetes.io/scheme"      = "internet-facing"
+      "alb.ingress.kubernetes.io/target-type" = "ip"
+    }
+    labels = {
+      "app" = "owncloud"
+    }
+  }
+
+  spec {
+    backend {
+      service_name = "owncloud-service"
+      service_port = 443
+    }
+    rule {
+      http {
+        path {
+          path = "/"
+          backend {
+            service_name = "owncloud-service"
+            service_port = 443
+          }
+        }
+      }
+    }
+  }
+  depends_on = [kubernetes_service.app]
+}
